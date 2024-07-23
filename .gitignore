@@ -3,4 +3,4 @@
 # Ignore Terraform workspace directory
 .terraform/
 *.py
-*.zip
+
