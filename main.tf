@@ -3,6 +3,12 @@ resource "aws_s3_bucket" "project_data_bucket" {
   bucket = "${var.s3_bucket_name}"
 }
 
+# Apply the bucket policy to allow QuickSight access
+resource "aws_s3_bucket_policy" "project_data_bucket_policy" {
+  bucket = aws_s3_bucket.project_data_bucket.id
+  policy = data.aws_iam_policy_document.s3_bucket_policy.json
+}
+
 # Create a DynamoDB table for storing processed data
 resource "aws_dynamodb_table" "project_data" {
   name           = var.dynamodb_table_name
@@ -150,3 +156,17 @@ resource "aws_lambda_permission" "allow_cloudwatch" {
   principal     = "events.amazonaws.com"
   source_arn    = aws_cloudwatch_event_rule.lambda_schedule.arn
 }
+
+# S3 bucket policy to allow QuickSight access
+data "aws_iam_policy_document" "s3_bucket_policy" {
+  statement {
+    actions   = ["s3:GetObject"]
+    resources = ["${aws_s3_bucket.project_data_bucket.arn}/*"]
+
+    principals {
+      type        = "Service"
+      identifiers = ["quicksight.amazonaws.com"]
+    }
+  }
+}
+
